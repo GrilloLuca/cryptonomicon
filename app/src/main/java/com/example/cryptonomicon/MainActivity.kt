@@ -5,9 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,36 +22,48 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.response.observe(this) {
-            updateContent(it.geckoSays)
-        }
-        viewModel.ping()
+        viewModel.tokenList.observe(this) { tokens ->
 
-        updateContent("")
+            updateContent(
+                tokens.joinToString(", ") {
+                    it.name
+                })
+
+        }
+        viewModel.getTokens()
+
+        updateContent(null)
 
     }
 
-    private fun updateContent(text: String) {
+    private fun updateContent(text: String?) {
 
         setContent {
             CryptonomiconTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = text?.let {
+                        Modifier.fillMaxSize()
+                    } ?: Modifier.fillMaxWidth() ,
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting(text)
+                    text?.let {
+                        Greeting(text)
+                    } ?: Loader()
                 }
             }
         }
     }
 }
 
-
-
 @Composable
 fun Greeting(name: String) {
-    Text(text = "$name")
+    Text(text = name)
+}
+
+@Composable
+fun Loader() {
+    LinearProgressIndicator()
 }
 
 @Preview(showBackground = true)
