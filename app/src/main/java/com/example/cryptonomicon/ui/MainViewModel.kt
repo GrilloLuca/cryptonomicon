@@ -16,10 +16,6 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
 
     companion object {
         private const val TAG = "MainViewModel"
-
-        private const val MARKET_CAP_DESC = "market_cap_desc"
-        private const val MARKET_CAP_ASC = "market_cap_asc"
-
     }
 
     var tokenList = MutableLiveData<List<Token>>()
@@ -35,10 +31,10 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
     /**
      * retrieve top ten tokens sorted bt market cap
      */
-    fun getTokens() = CoroutineScope(Dispatchers.IO).launch {
+    fun getTokens(currency: String, order: String) = CoroutineScope(Dispatchers.IO).launch {
 
         try {
-            val res = datasource.getTokens("EUR", MARKET_CAP_DESC, 10)
+            val res = datasource.getTokens(currency, order, 10)
             if (res.isSuccessful) {
                 tokenList.postValue(res.body())
             } else {
