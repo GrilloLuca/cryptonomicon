@@ -28,7 +28,10 @@ fun Greeting(name: String) {
 
 @Composable
 fun Loader() {
-    LinearProgressIndicator()
+    Column(modifier = Modifier
+        .fillMaxWidth()) {
+        LinearProgressIndicator()
+    }
 }
 
 @Composable

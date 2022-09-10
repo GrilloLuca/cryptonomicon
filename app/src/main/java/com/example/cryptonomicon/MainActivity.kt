@@ -45,11 +45,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CryptonomiconTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = tokens?.let {
-                        Modifier.fillMaxSize()
-                    } ?: Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
                     tokens?.let {
