@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.cryptonomicon.MainActivity.Companion.EXTRA_SELECTED_TOKEN
 import com.example.cryptonomicon.models.Token
@@ -54,16 +57,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.tokenList.observe(this) { tokens ->
-            updateContent(tokens)
-        }
         viewModel.getTokens(CURRENCY_EUR, MARKET_CAP_DESC)
-
-        updateContent(null)
-
-    }
-
-    private fun updateContent(tokens: List<Token>?) {
 
         setContent {
             CryptonomiconTheme {
@@ -71,32 +65,29 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    if (tokens?.isEmpty() == true) {
-                        Error(getString(R.string.txt_error_connection))
-                    }
-                    tokens?.let {
-                        TokensContent(it)
-                    } ?: Loader()
+                    TokensContent()
                 }
             }
         }
+
     }
 }
 
+// region composable
 
 @Preview
 @Composable
-fun Error(
-    @PreviewParameter(ErrorProvider::class, limit = 1) name: String
-) {
-    Row {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(text = name)
+fun TokensContent(viewModel: MainViewModel = viewModel()) {
+    val tokens = viewModel.tokenList.observeAsState()
+
+    tokens.value?.let {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            it.forEach { token ->
+                TokenListItem(token)
+            }
         }
-    }
+    } ?: Loader()
+
 }
 
 @Preview
@@ -116,12 +107,15 @@ fun Loader() {
 
 @Preview
 @Composable
-fun TokensContent(
-    @PreviewParameter(TokenListProvider::class, limit = 1) tokens: List<Token>
+fun Error(
+    @PreviewParameter(ErrorProvider::class, limit = 1) name: String
 ) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        tokens.forEach { token ->
-            TokenListItem(token)
+    Row {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(text = name)
         }
     }
 }
@@ -180,6 +174,8 @@ fun TokenListItem(
     }
 
 }
+
+// endregion
 
 fun openDetails(context: Context, tokenId: String) {
     val intent = Intent(context, TokenDetailsActivity::class.java)
