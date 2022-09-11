@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // use observeAsState to observe response inside the composable
         viewModel.getTokens(CURRENCY_EUR, MARKET_CAP_DESC)
 
         setContent {
@@ -124,7 +125,7 @@ fun EmptyList() {
 
 @Preview
 @Composable
-private fun TokenImage(
+fun TokenImage(
     @PreviewParameter(TokenProvider::class, limit = 1) tokenImage: String
 ) {
     Image(
