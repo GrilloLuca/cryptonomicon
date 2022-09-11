@@ -81,6 +81,9 @@ fun TokensContent(viewModel: MainViewModel = viewModel()) {
     val tokens = viewModel.tokenList.observeAsState()
 
     tokens.value?.let {
+        if(it.isEmpty()) {
+            EmptyList()
+        }
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             it.forEach { token ->
                 TokenListItem(token)
@@ -107,15 +110,14 @@ fun Loader() {
 
 @Preview
 @Composable
-fun Error(
-    @PreviewParameter(ErrorProvider::class, limit = 1) name: String
-) {
+fun EmptyList() {
+    val context = LocalContext.current
     Row {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Text(text = name)
+            Text(context.resources.getString(R.string.txt_error_connection))
         }
     }
 }
@@ -123,10 +125,10 @@ fun Error(
 @Preview
 @Composable
 private fun TokenImage(
-    @PreviewParameter(TokenProvider::class, limit = 1) token: Token
+    @PreviewParameter(TokenProvider::class, limit = 1) tokenImage: String
 ) {
     Image(
-        painter = rememberAsyncImagePainter(token.image),
+        painter = rememberAsyncImagePainter(tokenImage),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -157,7 +159,7 @@ fun TokenListItem(
                 modifier = Modifier
                     .align(alignment = Alignment.CenterVertically)
             ) {
-                TokenImage(token)
+                TokenImage(token.image)
             }
             Column(
                 modifier = Modifier
