@@ -1,8 +1,8 @@
 package com.example.cryptonomicon.datasource
 
 import com.example.cryptonomicon.api.CoinGeckoApi
-import com.example.cryptonomicon.models.GeckoResponse
 import com.example.cryptonomicon.models.Token
+import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
 import retrofit2.Response
 import javax.inject.Inject
@@ -20,6 +20,10 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi): NetworkRep
         perPage: Int
     ): Response<List<Token>> {
         return api.getTokens(currency, order, perPage)
+    }
+
+    override suspend fun getTokenDetails(tokenId: String): Response<TokenDetails> {
+        return api.getTokenDetails(tokenId)
     }
 
 }

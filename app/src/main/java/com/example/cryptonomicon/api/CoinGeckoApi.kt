@@ -1,18 +1,17 @@
 package com.example.cryptonomicon.api
 
-import android.util.Log
 import com.example.cryptonomicon.BuildConfig
 import com.example.cryptonomicon.models.GeckoResponse
 import com.example.cryptonomicon.models.Token
-import okhttp3.OkHttp
+import com.example.cryptonomicon.models.TokenDetails
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CoinGeckoApi {
@@ -26,6 +25,17 @@ interface CoinGeckoApi {
         @Query("order") order: String,
         @Query("per_page") perPage: Int
     ): Response<List<Token>>
+
+    @GET("coins/{tokenId}")
+    suspend fun getTokenDetails(
+        @Path("tokenId") tokenId: String,
+        @Query("localization") localization: Boolean = false,
+        @Query("tickers") tickers: Boolean = false,
+        @Query("market_data") market_data: Boolean = false,
+        @Query("community_data") community_data: Boolean = false,
+        @Query("developer_data") developer_data: Boolean = false,
+        @Query("sparkline") sparkline: Boolean = false,
+    ): Response<TokenDetails>
 
     companion object {
 

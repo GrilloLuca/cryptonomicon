@@ -23,7 +23,7 @@ data class Token(
     val name: String,
     val price_change_24h: Double,
     val price_change_percentage_24h: Double,
-    val roi: Any,
+    val roi: Any?,
     val symbol: String,
     val total_supply: Float,
     val total_volume: Long

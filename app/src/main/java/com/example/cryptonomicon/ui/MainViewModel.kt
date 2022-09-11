@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.cryptonomicon.models.Token
+import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
     }
 
     var tokenList = MutableLiveData<List<Token>>()
+    var tokenDetails = MutableLiveData<TokenDetails>()
 
     /**
      * Ping method of CoinGecko api
@@ -32,7 +34,6 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
      * retrieve top ten tokens sorted bt market cap
      */
     fun getTokens(currency: String, order: String) = CoroutineScope(Dispatchers.IO).launch {
-
         try {
             val res = datasource.getTokens(currency, order, 10)
             if (res.isSuccessful) {
@@ -43,7 +44,25 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
         } catch (e: Throwable) {
             tokenList.postValue(listOf())
         }
-
     }
+
+
+    /**
+     * retrieve the token details
+     */
+    fun getTokenDetails(tokenId: String) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val res = datasource.getTokenDetails(tokenId)
+            if (res.isSuccessful) {
+                tokenDetails.postValue(res.body())
+            } else {
+                res.errorBody()?.string()?.let { Log.d(TAG, it) }
+            }
+        } catch (e: Throwable) {
+            tokenDetails.postValue(null)
+        }
+    }
+
+
 
 }
