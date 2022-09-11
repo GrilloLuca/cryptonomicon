@@ -31,8 +31,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.cryptonomicon.MainActivity.Companion.EXTRA_SELECTED_TOKEN
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.ui.MainViewModel
-import com.example.cryptonomicon.ui.compose.preview.ErrorProvider
-import com.example.cryptonomicon.ui.compose.preview.TokenListProvider
 import com.example.cryptonomicon.ui.compose.preview.TokenProvider
 import com.example.cryptonomicon.ui.theme.CryptonomiconTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -126,7 +124,7 @@ fun EmptyList() {
 @Preview
 @Composable
 fun TokenImage(
-    @PreviewParameter(TokenProvider::class, limit = 1) tokenImage: String
+    @PreviewParameter(TokenProvider::class, limit = 1) tokenImage: String?
 ) {
     Image(
         painter = rememberAsyncImagePainter(tokenImage),
