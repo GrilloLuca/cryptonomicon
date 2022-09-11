@@ -2,6 +2,7 @@ package com.example.cryptonomicon.api
 
 import com.example.cryptonomicon.BuildConfig
 import com.example.cryptonomicon.models.GeckoResponse
+import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import okhttp3.OkHttpClient
@@ -36,6 +37,14 @@ interface CoinGeckoApi {
         @Query("developer_data") developer_data: Boolean = false,
         @Query("sparkline") sparkline: Boolean = false,
     ): Response<TokenDetails>
+
+    @GET("coins/{tokenId}/market_chart/range")
+    suspend fun getMarketChart(
+        @Path("tokenId") tokenId: String,
+        @Query("vs_currency") currency: String,
+        @Query("from") from: String,
+        @Query("to") to: String
+    ): Response<MarketData>
 
     companion object {
 

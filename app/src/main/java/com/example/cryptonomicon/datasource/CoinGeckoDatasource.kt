@@ -1,6 +1,7 @@
 package com.example.cryptonomicon.datasource
 
 import com.example.cryptonomicon.api.CoinGeckoApi
+import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
@@ -24,6 +25,15 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi): NetworkRep
 
     override suspend fun getTokenDetails(tokenId: String): Response<TokenDetails> {
         return api.getTokenDetails(tokenId)
+    }
+
+    override suspend fun getMarketChart(
+        tokenId: String,
+        currency: String,
+        from: String,
+        to: String
+    ): Response<MarketData> {
+        return api.getMarketChart(tokenId, currency, from, to)
     }
 
 }

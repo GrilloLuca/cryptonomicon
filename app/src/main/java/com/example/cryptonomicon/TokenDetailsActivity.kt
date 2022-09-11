@@ -24,12 +24,15 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.ui.MainViewModel
 import com.example.cryptonomicon.ui.compose.preview.TokenProvider
 import com.example.cryptonomicon.ui.theme.CryptonomiconTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.LocalDateTime
+import java.util.*
 
 @AndroidEntryPoint
 class TokenDetailsActivity : ComponentActivity() {
@@ -42,6 +45,7 @@ class TokenDetailsActivity : ComponentActivity() {
         val tokenId = intent.extras?.get(MainActivity.EXTRA_SELECTED_TOKEN) as? String
         tokenId?.let {
             viewModel.getTokenDetails(it)
+            viewModel.getWeeklyMarketChart(it)
         }
 
         setContent {
@@ -50,7 +54,13 @@ class TokenDetailsActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TokenDetailsContent()
+                    Row {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                            TokenDetailsContent()
+                            MarketChartContent()
+                        }
+                    }
+
                 }
             }
         }
@@ -62,9 +72,20 @@ class TokenDetailsActivity : ComponentActivity() {
         val details = viewModel.tokenDetails.observeAsState()
 
         details.value?.let {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Row() {
                 DetailCard(it)
             }
+        } ?: Loader()
+
+    }
+
+    @Preview
+    @Composable
+    fun MarketChartContent(viewModel: MainViewModel = viewModel()) {
+        val data = viewModel.marketChart.observeAsState()
+
+        data.value?.let {
+            MarketChart(it)
         } ?: Loader()
 
     }
@@ -72,6 +93,34 @@ class TokenDetailsActivity : ComponentActivity() {
     @Composable
     fun DetailCard(token: TokenDetails) {
 
+        Column() {
+            DetailHeader(token)
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+                elevation = 2.dp,
+                shape = RoundedCornerShape(corner = CornerSize(16.dp))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = HtmlCompat.fromHtml(
+                            token.description.en,
+                            HtmlCompat.FROM_HTML_MODE_LEGACY
+                        ).toString(),
+                        style = MaterialTheme.typography.caption
+                    )
+                }
+            }
+        }
+
+    }
+
+    @Composable
+    fun DetailHeader(token: TokenDetails) {
         Row {
             Column(
                 modifier = Modifier
@@ -86,6 +135,11 @@ class TokenDetailsActivity : ComponentActivity() {
                 Text(token.links.homepage[0])
             }
         }
+    }
+
+    @Composable
+    fun MarketChart(data: MarketData) {
+
         Card(
             modifier = Modifier
                 .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -100,14 +154,15 @@ class TokenDetailsActivity : ComponentActivity() {
             ) {
                 Text(
                     text = HtmlCompat.fromHtml(
-                        token.description.en,
+                        data.prices.joinToString(" ; "),
                         HtmlCompat.FROM_HTML_MODE_LEGACY
                     ).toString(),
-                    style = MaterialTheme.typography.h6
+                    style = MaterialTheme.typography.caption
                 )
             }
 
         }
     }
+
 
 }

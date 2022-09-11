@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,12 +41,6 @@ class MainActivity : ComponentActivity() {
 
         const val EXTRA_SELECTED_TOKEN = "extra_selected_token"
 
-        private const val CURRENCY_EUR = "EUR"
-        private const val CURRENCY_USD = "USD"
-
-        private const val MARKET_CAP_DESC = "market_cap_desc"
-        private const val MARKET_CAP_ASC = "market_cap_asc"
-
     }
 
     private val viewModel: MainViewModel by viewModels()
@@ -56,7 +49,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // use observeAsState to observe response inside the composable
-        viewModel.getTokens(CURRENCY_EUR, MARKET_CAP_DESC)
+        viewModel.getTokens()
 
         setContent {
             CryptonomiconTheme {
@@ -71,8 +64,6 @@ class MainActivity : ComponentActivity() {
 
     }
 }
-
-// region composable
 
 @Preview
 @Composable
@@ -169,7 +160,8 @@ fun TokenListItem(
                     text = "${token.name} (${token.symbol})",
                     style = MaterialTheme.typography.h6
                 )
-                Text(text = "${token.current_price}€", style = MaterialTheme.typography.caption)
+                Text(text = "${token.current_price}€",
+                    style = MaterialTheme.typography.caption)
             }
         }
     }
