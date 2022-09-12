@@ -4,12 +4,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.datasource.CoinGeckoDatasource
-import com.example.cryptonomicon.models.GeckoResponse
+import com.example.cryptonomicon.models.PingResponse
 import io.mockk.MockKAnnotations
-import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
-import okhttp3.Response
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,7 +44,7 @@ class ExampleInstrumentedTest {
             datasource.ping()
         }
 
-        val expected = GeckoResponse("(V3) To the Moon!")
+        val expected = PingResponse("(V3) To the Moon!")
 
         assertEquals(expected, res.body())
         assertEquals(res.code(), 200)

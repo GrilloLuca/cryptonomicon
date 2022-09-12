@@ -71,7 +71,7 @@ fun TokensContent(viewModel: MainViewModel = viewModel()) {
     val tokens = viewModel.tokenList.observeAsState()
 
     tokens.value?.let {
-        if(it.isEmpty()) {
+        if (it.isEmpty()) {
             EmptyList()
         }
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -86,15 +86,14 @@ fun TokensContent(viewModel: MainViewModel = viewModel()) {
 @Preview
 @Composable
 fun Loader() {
-    Row(
-        horizontalArrangement = Arrangement.Center
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .align(alignment = Alignment.CenterVertically)
-        ) {
-            CircularProgressIndicator()
-        }
+        CircularProgressIndicator(modifier = Modifier
+            .padding(8.dp)
+            .align(alignment = Alignment.CenterHorizontally)
+        )
     }
 }
 
@@ -160,8 +159,10 @@ fun TokenListItem(
                     text = "${token.name} (${token.symbol})",
                     style = MaterialTheme.typography.h6
                 )
-                Text(text = "${token.current_price}€",
-                    style = MaterialTheme.typography.caption)
+                Text(
+                    text = "${token.current_price}€",
+                    style = MaterialTheme.typography.caption
+                )
             }
         }
     }

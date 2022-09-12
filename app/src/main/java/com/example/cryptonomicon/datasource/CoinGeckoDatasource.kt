@@ -5,6 +5,7 @@ import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
+import kotlinx.coroutines.delay
 import retrofit2.Response
 import javax.inject.Inject
 
