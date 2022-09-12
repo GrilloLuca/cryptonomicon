@@ -51,7 +51,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             CryptonomiconTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
                     color = MaterialTheme.colors.background
                 ) {
                     NavigationScreen()
