@@ -69,10 +69,10 @@ class MainActivity : ComponentActivity() {
 fun NavigationScreen() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "main") {
-        composable(route = "main") {
-            val viewModel = hiltViewModel<MainViewModel>().apply {
+        composable(route = "main") { _ ->
+            val viewModel = hiltViewModel<MainViewModel>().also {
                 // request tokens by ViewModel and observe result in the composable
-                getTokens()
+                it.getTokens()
             }
             TokensScreen(navController, viewModel)
         }
@@ -81,13 +81,13 @@ fun NavigationScreen() {
             arguments = listOf(navArgument("tokenId") {
                 type = NavType.StringType
             })
-        ) {
-            it.arguments?.getString("tokenId")?.let { tokenId ->
-                val viewModel = hiltViewModel<MainViewModel>().apply {
+        ) { details ->
+            details.arguments?.getString("tokenId")?.let { tokenId ->
+                val viewModel = hiltViewModel<MainViewModel>().also {
                     // request tokens details and market data by ViewModel
                     // and observe result in the composable
-                    getTokenDetails(tokenId)
-                    getWeeklyMarketChart(tokenId)
+                    it.getTokenDetails(tokenId)
+                    it.getWeeklyMarketChart(tokenId)
                 }
                 TokenDetailsScreen(navController, viewModel)
             }
