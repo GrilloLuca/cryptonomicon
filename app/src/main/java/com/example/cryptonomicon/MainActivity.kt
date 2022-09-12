@@ -1,15 +1,13 @@
 package com.example.cryptonomicon
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,14 +23,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.text.HtmlCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
-import com.example.cryptonomicon.MainActivity.Companion.EXTRA_SELECTED_TOKEN
+import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
+import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.ui.MainViewModel
 import com.example.cryptonomicon.ui.compose.preview.TokenProvider
 import com.example.cryptonomicon.ui.theme.CryptonomiconTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -43,31 +51,52 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    private val viewModel: MainViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // use observeAsState to observe response inside the composable
-        viewModel.getTokens()
-
         setContent {
             CryptonomiconTheme {
+
+                val navController = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TokensContent()
+
+                    NavHost(navController = navController, startDestination = "main") {
+                        composable(route = "main") {
+                            val viewModel = hiltViewModel<MainViewModel>()
+                            viewModel.getTokens()
+                            TokensScreen(
+                                navController = navController,
+                                viewModel = viewModel
+                            )
+                        }
+                        composable(
+                            route = "details/{tokenId}",
+                            arguments = listOf(navArgument("tokenId") {
+                                type = NavType.StringType
+                            })
+                        ) {
+                            val viewModel = hiltViewModel<MainViewModel>()
+                            val tokenId = it.arguments?.getString("tokenId")!!
+                            viewModel.getTokenDetails(tokenId)
+                            viewModel.getWeeklyMarketChart(tokenId)
+                            TokenDetailsScreen(
+                                navController = navController,
+                                viewModel = viewModel
+                            )
+                        }
+                    }
                 }
             }
         }
-
     }
+
 }
 
-@Preview
 @Composable
-fun TokensContent(viewModel: MainViewModel = viewModel()) {
+fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
     val tokens = viewModel.tokenList.observeAsState()
 
     tokens.value?.let {
@@ -76,11 +105,29 @@ fun TokensContent(viewModel: MainViewModel = viewModel()) {
         }
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             it.forEach { token ->
-                TokenListItem(token)
+                TokenListItem(navController, token)
             }
         }
     } ?: Loader()
 
+}
+
+@Composable
+fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
+    val details = viewModel.tokenDetails.observeAsState()
+    val chart = viewModel.marketChart.observeAsState()
+
+    Column {
+
+        details.value?.let {
+            DetailCard(it)
+        } ?: Loader()
+
+        chart.value?.let {
+            MarketChart(it)
+        } ?: Loader()
+
+    }
 }
 
 @Preview
@@ -90,9 +137,10 @@ fun Loader() {
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        CircularProgressIndicator(modifier = Modifier
-            .padding(8.dp)
-            .align(alignment = Alignment.CenterHorizontally)
+        CircularProgressIndicator(
+            modifier = Modifier
+                .padding(8.dp)
+                .align(alignment = Alignment.CenterHorizontally)
         )
     }
 }
@@ -127,13 +175,11 @@ fun TokenImage(
     )
 }
 
-@Preview
 @Composable
 fun TokenListItem(
-    @PreviewParameter(TokenProvider::class, limit = 1) token: Token
+    navController: NavController,
+    token: Token
 ) {
-    val context = LocalContext.current
-
     Card(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -142,7 +188,9 @@ fun TokenListItem(
         shape = RoundedCornerShape(corner = CornerSize(16.dp))
     ) {
         Row(modifier = Modifier
-            .clickable { openDetails(context, token.id) }
+            .clickable {
+                navController.navigate("details/${token.id}")
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -166,14 +214,89 @@ fun TokenListItem(
             }
         }
     }
+}
 
+@Composable
+fun DetailHeader(token: TokenDetails) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TokenImage(token.image.small)
+        Text(token.links.homepage[0])
+    }
+}
+
+@Composable
+fun DetailCard(token: TokenDetails) {
+
+    Column {
+        DetailHeader(token)
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            elevation = 2.dp,
+            shape = RoundedCornerShape(corner = CornerSize(16.dp))
+        ) {
+            Text(
+                text = HtmlCompat.fromHtml(
+                    token.description.en,
+                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                ).toString(),
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier
+                    .padding(16.dp)
+            )
+
+        }
+    }
+
+}
+
+@Composable
+fun MarketPrice(price: List<Double>) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp),
+    ) {
+
+        val df = Date(price[0].toLong())
+        val vv: String = SimpleDateFormat("MM dd, yyyy hh:mma", Locale.ITALIAN).format(df)
+
+        Text(
+            text = "date: $vv",
+            style = MaterialTheme.typography.h6
+        )
+        Text(
+            text = "price: ${price[1]}",
+            style = MaterialTheme.typography.caption
+        )
+    }
+}
+
+@Composable
+fun MarketPriceList(prices: List<List<Double>>) {
+    LazyColumn {
+        items(prices) { price ->
+            MarketPrice(price)
+        }
+    }
+}
+
+@Composable
+fun MarketChart(data: MarketData) {
+
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .height(300.dp),
+        elevation = 2.dp,
+        shape = RoundedCornerShape(corner = CornerSize(16.dp))
+    ) {
+        MarketPriceList(data.prices)
+    }
 }
 
 // endregion
-
-fun openDetails(context: Context, tokenId: String) {
-    val intent = Intent(context, TokenDetailsActivity::class.java)
-    intent.putExtra(EXTRA_SELECTED_TOKEN, tokenId)
-    context.startActivity(intent)
-}
-
