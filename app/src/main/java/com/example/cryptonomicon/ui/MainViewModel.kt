@@ -11,9 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.*
+import java.sql.Timestamp
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,15 +84,17 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
     fun getWeeklyMarketChart(tokenId: String) =
         CoroutineScope(Dispatchers.IO).launch {
 
-            val to = LocalDate.now()
-            val from = to.minusDays(7)
+            val week = 7 * 60 * 60 * 24 * 1000
+            val now = System.currentTimeMillis()
+            val to = Timestamp(now).time / 1000
+            val from = Timestamp(now - week).time / 1000
 
             try {
                 val res = datasource.getMarketChart(
                     tokenId,
                     CURRENCY_EUR,
-                    from.toUnix(),
-                    to.toUnix()
+                    "$from",
+                    "$to"
                 )
                 if (res.isSuccessful) {
                     marketChart.postValue(res.body())
@@ -106,9 +106,4 @@ class MainViewModel @Inject constructor(var datasource: NetworkRepository) : Vie
             }
         }
 
-
-}
-
-fun LocalDate.toUnix() = run {
-    this.atStartOfDay(ZoneId.systemDefault()).toInstant().epochSecond.toString()
 }

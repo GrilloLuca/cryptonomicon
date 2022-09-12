@@ -113,7 +113,8 @@ fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
     val details = viewModel.tokenDetails.observeAsState()
     val chart = viewModel.marketChart.observeAsState()
 
-    Column {
+    Column(modifier = Modifier
+        .verticalScroll(rememberScrollState())) {
 
         details.value?.let {
             DetailCard(it)
