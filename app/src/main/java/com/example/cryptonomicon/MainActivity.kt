@@ -45,12 +45,6 @@ import java.util.*
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    companion object {
-
-        const val EXTRA_SELECTED_TOKEN = "extra_selected_token"
-
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -91,9 +85,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
 
+    }
 }
+
+// region composable
 
 @Composable
 fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
