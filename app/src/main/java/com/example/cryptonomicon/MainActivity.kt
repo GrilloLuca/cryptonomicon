@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
-import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.ui.MainViewModel
@@ -50,47 +50,55 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CryptonomiconTheme {
-
-                val navController = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-
-                    NavHost(navController = navController, startDestination = "main") {
-                        composable(route = "main") {
-                            val viewModel = hiltViewModel<MainViewModel>()
-                            viewModel.getTokens()
-                            TokensScreen(
-                                navController = navController,
-                                viewModel = viewModel
-                            )
-                        }
-                        composable(
-                            route = "details/{tokenId}",
-                            arguments = listOf(navArgument("tokenId") {
-                                type = NavType.StringType
-                            })
-                        ) {
-                            val viewModel = hiltViewModel<MainViewModel>()
-                            val tokenId = it.arguments?.getString("tokenId")!!
-                            viewModel.getTokenDetails(tokenId)
-                            viewModel.getWeeklyMarketChart(tokenId)
-                            TokenDetailsScreen(
-                                navController = navController,
-                                viewModel = viewModel
-                            )
-                        }
-                    }
+                    NavigationScreen()
                 }
             }
         }
+    }
+}
 
+/**
+ * Navigation screen handle Navigation trough token list and token details
+ * with NavController and HiltViewmodel
+ */
+@Composable
+fun NavigationScreen() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "main") {
+        composable(route = "main") {
+            val viewModel = hiltViewModel<MainViewModel>().apply {
+                // request tokens by ViewModel and observe result in the composable
+                getTokens()
+            }
+            TokensScreen(navController, viewModel)
+        }
+        composable(
+            route = "details/{tokenId}",
+            arguments = listOf(navArgument("tokenId") {
+                type = NavType.StringType
+            })
+        ) {
+            it.arguments?.getString("tokenId")?.let { tokenId ->
+                val viewModel = hiltViewModel<MainViewModel>().apply {
+                    // request tokens details and market data by ViewModel
+                    // and observe result in the composable
+                    getTokenDetails(tokenId)
+                    getWeeklyMarketChart(tokenId)
+                }
+                TokenDetailsScreen(navController, viewModel)
+            }
+        }
     }
 }
 
 // region composable
-
+/**
+ * TokenScreen shows the list of assets in a simple column
+ */
 @Composable
 fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
     val tokens = viewModel.tokenList.observeAsState()
@@ -108,22 +116,43 @@ fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
 
 }
 
+/**
+ * TokenDetailsScreen shows detailed asset info with website url, description and market price
+ */
 @Composable
 fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
     val details = viewModel.tokenDetails.observeAsState()
     val chart = viewModel.marketChart.observeAsState()
 
-    Column(modifier = Modifier
-        .verticalScroll(rememberScrollState())) {
-
-        details.value?.let {
-            DetailCard(it)
-        } ?: Loader()
-
-        chart.value?.let {
-            MarketChart(it)
-        } ?: Loader()
-
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+    ) {
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            elevation = 2.dp,
+            shape = RoundedCornerShape(corner = CornerSize(16.dp))
+        ) {
+            Column {
+                details.value?.let {
+                    DetailHeader(it)
+                    DetailCard(it)
+                } ?: Loader()
+            }
+        }
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            elevation = 2.dp,
+            shape = RoundedCornerShape(corner = CornerSize(16.dp))
+        ) {
+            chart.value?.let {
+                MarketPriceList(it.prices)
+            } ?: Loader()
+        }
     }
 }
 
@@ -146,14 +175,11 @@ fun Loader() {
 @Composable
 fun EmptyList() {
     val context = LocalContext.current
-    Row {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(context.resources.getString(R.string.txt_error_connection))
-        }
-    }
+    Text(
+        text = context.resources.getString(R.string.txt_error_connection),
+        modifier = Modifier
+            .fillMaxWidth()
+    )
 }
 
 @Preview
@@ -226,73 +252,50 @@ fun DetailHeader(token: TokenDetails) {
 
 @Composable
 fun DetailCard(token: TokenDetails) {
-
-    Column {
-        DetailHeader(token)
-        Card(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            elevation = 2.dp,
-            shape = RoundedCornerShape(corner = CornerSize(16.dp))
-        ) {
-            Text(
-                text = HtmlCompat.fromHtml(
-                    token.description.en,
-                    HtmlCompat.FROM_HTML_MODE_LEGACY
-                ).toString(),
-                style = MaterialTheme.typography.caption,
-                modifier = Modifier
-                    .padding(16.dp)
-            )
-
-        }
-    }
-
+    Text(
+        text = HtmlCompat.fromHtml(
+            token.description.en,
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        ).toString(),
+        style = MaterialTheme.typography.caption,
+        modifier = Modifier
+            .padding(16.dp)
+    )
 }
 
 @Composable
-fun MarketPrice(price: List<Double>) {
+fun MarketPriceItem(price: List<Double>) {
     Column(
         modifier = Modifier
-            .padding(16.dp),
+            .padding(4.dp),
     ) {
 
         val df = Date(price[0].toLong())
-        val vv: String = SimpleDateFormat("MM dd, yyyy hh:mma", Locale.ITALIAN).format(df)
+        val vv: String = SimpleDateFormat("dd/MM/yyyy, h:mm a", Locale.ITALIAN).format(df)
 
         Text(
             text = "date: $vv",
-            style = MaterialTheme.typography.h6
+            style = MaterialTheme.typography.body1
         )
         Text(
             text = "price: ${price[1]}",
-            style = MaterialTheme.typography.caption
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
 fun MarketPriceList(prices: List<List<Double>>) {
-    LazyColumn {
-        items(prices) { price ->
-            MarketPrice(price)
-        }
-    }
-}
-
-@Composable
-fun MarketChart(data: MarketData) {
-
-    Card(
+    LazyColumn(
         modifier = Modifier
-            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .height(400.dp)
+            .padding(8.dp)
             .fillMaxWidth()
-            .height(300.dp),
-        elevation = 2.dp,
-        shape = RoundedCornerShape(corner = CornerSize(16.dp))
     ) {
-        MarketPriceList(data.prices)
+        items(prices) { price ->
+            MarketPriceItem(price)
+        }
     }
 }
 
