@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Cryptonomicon</string>
-    <string name="txt_error_connection">Please check your internet connection</string>
+    <string name="txt_error_connection">There is a problem loading data.\nplease try again later</string>
     <string name="title_activity_token_details">TokenDetails</string>
 </resources>

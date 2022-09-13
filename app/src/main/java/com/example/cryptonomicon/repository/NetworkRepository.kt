@@ -4,18 +4,19 @@ import com.example.cryptonomicon.models.PingResponse
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
+import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 interface NetworkRepository {
 
-    suspend fun ping(): Response<PingResponse>
-    suspend fun getTokens(currency: String, order: String, perPage: Int): Response<List<Token>>
-    suspend fun getTokenDetails(tokenId: String): Response<TokenDetails>
-    suspend fun getMarketChart(
+    fun ping(): Flow<PingResponse?>
+    fun getTokens(currency: String, order: String, perPage: Int): Flow<List<Token>?>
+    fun getTokenDetails(tokenId: String): Flow<TokenDetails?>
+    fun getMarketChart(
         tokenId: String,
         currency: String,
         from: String,
         to: String
-    ): Response<MarketData>
+    ): Flow<MarketData?>
 
 }

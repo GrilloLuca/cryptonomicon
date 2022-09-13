@@ -5,8 +5,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.datasource.CoinGeckoDatasource
 import com.example.cryptonomicon.models.PingResponse
+import com.example.cryptonomicon.repository.NetworkRepository
 import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.Response
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,9 +30,15 @@ import org.junit.Before
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
 
+    @MockK
+    lateinit var repo: NetworkRepository
+
+    private lateinit var useCase: CryptoUseCases
+
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        this.useCase = CryptoUseCases(repo)
     }
 
     @Test
@@ -35,19 +49,20 @@ class ExampleInstrumentedTest {
     }
 
     @Test
-    fun GeckoApiPing() {
+    fun getTokensUseCaseTest() {
 
-        val api = CoinGeckoApi.create()
-        val datasource = CoinGeckoDatasource(api)
-
-        val res = runBlocking {
-            datasource.ping()
+        every {
+            repo.ping()
+        } returns flow {
+            emit(PingResponse("OK"))
         }
 
-        val expected = PingResponse("(V3) To the Moon!")
-
-        assertEquals(expected, res.body())
-        assertEquals(res.code(), 200)
+        runBlocking {
+            useCase.ping().collect {
+                assertEquals("OK", it?.geckoSays)
+            }
+        }
 
     }
+
 }
