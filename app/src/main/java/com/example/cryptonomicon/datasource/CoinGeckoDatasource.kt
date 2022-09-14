@@ -1,5 +1,6 @@
 package com.example.cryptonomicon.datasource
 
+import android.util.Log
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.PingResponse
@@ -9,10 +10,15 @@ import com.example.cryptonomicon.repository.NetworkRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.ResponseBody
 import retrofit2.Response
 import javax.inject.Inject
 
 class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRepository {
+
+    companion object {
+        private const val TAG = "CoinGeckoDatasource"
+    }
 
     override fun ping(): Flow<PingResponse?> = flow {
         val res = api.ping()
@@ -33,15 +39,20 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
         val res = api.getTokens(currency, order, perPage)
         if (res.isSuccessful) {
             emit(res.body())
+        } else {
+            logError(res.errorBody())
+            emit(listOf())
         }
     }
-
 
     override fun getTokenDetails(tokenId: String) : Flow<TokenDetails?> = flow {
 
         val res = api.getTokenDetails(tokenId)
         if(res.isSuccessful) {
             emit(res.body())
+        } else {
+            logError(res.errorBody())
+            emit(null)
         }
 
     }
@@ -56,8 +67,19 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
         val res = api.getMarketChart(tokenId, currency, from, to)
         if(res.isSuccessful) {
             emit(res.body())
+        } else {
+            logError(res.errorBody())
+            emit(null)
         }
 
     }
+
+
+    private fun logError(error: ResponseBody?) {
+        error?.string()?.let {
+            Log.d(TAG, it)
+        }
+    }
+
 
 }

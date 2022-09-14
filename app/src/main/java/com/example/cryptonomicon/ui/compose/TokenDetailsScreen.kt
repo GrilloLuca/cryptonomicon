@@ -25,7 +25,8 @@ import java.util.*
 
 
 /**
- * TokenDetailsScreen shows detailed asset info with website url, description and market price
+ * TokenDetailsScreen shows detailed asset info with website url,
+ * description and market price
  */
 @Composable
 fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
