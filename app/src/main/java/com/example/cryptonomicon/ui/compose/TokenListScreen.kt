@@ -1,10 +1,7 @@
 package com.example.cryptonomicon.ui.compose
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,14 +70,25 @@ fun TokenListItem(
                     .padding(16.dp)
                     .align(Alignment.CenterVertically)
             ) {
-                Text(
-                    text = "${token.name} (${token.symbol})",
-                    style = MaterialTheme.typography.h6
-                )
-                Text(
-                    text = "${token.current_price}€",
-                    style = MaterialTheme.typography.caption
-                )
+                Row {
+                    Text(
+                        text = token.name,
+                        style = MaterialTheme.typography.h6
+                    )
+                    token.symbol?.let {
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = "($it)",
+                            style = MaterialTheme.typography.h6
+                        )
+                    }
+                }
+                token.current_price?.let {
+                    Text(
+                        text = "$it €",
+                        style = MaterialTheme.typography.caption
+                    )
+                }
             }
         }
     }
@@ -96,7 +104,7 @@ fun TokenListItemPreview() {
             name = "Bitcoin",
             symbol = "BTC",
             image = R.drawable.ic_bitcoin,
-            current_price = 180000.0f
+            current_price = 18000.0f
         )
     )
 }

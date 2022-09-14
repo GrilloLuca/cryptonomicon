@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
 /**
  * Navigation screen handle Navigation trough token list and token details
- * with NavController and HiltViewmodel
+ * with NavController and HiltViewModel
  */
 @Composable
 fun NavigationScreen(navController: NavHostController) {
