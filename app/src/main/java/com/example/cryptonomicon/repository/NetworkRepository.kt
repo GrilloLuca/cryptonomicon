@@ -10,13 +10,14 @@ import retrofit2.Response
 interface NetworkRepository {
 
     fun ping(): Flow<PingResponse?>
-    fun getTokens(currency: String, order: String, perPage: Int): Flow<List<Token>?>
-    fun getTokenDetails(tokenId: String): Flow<TokenDetails?>
-    fun getMarketChart(
+
+    suspend fun getTokens(currency: String, order: String, perPage: Int): List<Token>?
+    suspend fun getTokenDetails(tokenId: String): TokenDetails?
+    suspend fun getMarketChart(
         tokenId: String,
         currency: String,
         from: String,
         to: String
-    ): Flow<MarketData?>
+    ): MarketData?
 
 }

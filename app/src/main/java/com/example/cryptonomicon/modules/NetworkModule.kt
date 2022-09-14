@@ -3,6 +3,8 @@ package com.example.cryptonomicon.modules
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.datasource.CoinGeckoDatasource
 import com.example.cryptonomicon.repository.NetworkRepository
+import com.example.cryptonomicon.usecase.CoroutineUseCase
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

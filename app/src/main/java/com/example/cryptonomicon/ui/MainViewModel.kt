@@ -3,19 +3,25 @@ package com.example.cryptonomicon.ui
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cryptonomicon.CryptoUseCases
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
+import com.example.cryptonomicon.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import java.sql.Timestamp
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(var useCase: CryptoUseCases) : ViewModel() {
+class MainViewModel @Inject constructor(
+    private var tokenListUseCase: GetTokenListUseCase,
+    private var tokenDetailsUseCase: TokenDetailsUseCase,
+    private var weeklyMarketChartUseCase: WeeklyMarketChartUseCase
+
+) : ViewModel() {
 
     var tokenList = MutableLiveData<List<Token>>()
     var tokenDetails = MutableLiveData<TokenDetails>()
@@ -26,39 +32,47 @@ class MainViewModel @Inject constructor(var useCase: CryptoUseCases) : ViewModel
      * dispatchers should be injected in the viewModel as well
      */
     fun ping() = CoroutineScope(Dispatchers.IO).launch {
-        useCase.ping()
+//        useCase.ping()
     }
 
     fun getTokens() {
         viewModelScope.launch {
-            useCase.getTokens()
-                .catch {
-                    tokenList.postValue(listOf())
-                }.collect {
-                    tokenList.postValue(it)
-                }
+            val res = tokenListUseCase.execute(
+                TokenListInput(CURRENCY_EUR, MARKET_CAP_DESC, 10)
+            )
+            tokenList.postValue(res)
         }
     }
 
     fun getTokenDetails(tokenId: String) {
         viewModelScope.launch {
-            useCase.getTokenDetails(tokenId).catch {
-                tokenDetails.postValue(null)
-            }.collect {
-                tokenDetails.postValue(it)
-            }
+            val res = tokenDetailsUseCase.execute(tokenId)
+            tokenDetails.postValue(res)
         }
     }
 
     fun getWeeklyMarketChart(tokenId: String) {
         viewModelScope.launch {
-            useCase.getWeeklyMarketChart(tokenId).catch {
-                marketChart.postValue(null)
-            }.collect {
-                marketChart.postValue(it)
-            }
+            val res = weeklyMarketChartUseCase.execute(
+                WeeklyMarketChartInput(
+                    tokenId = tokenId,
+                    currency = CURRENCY_EUR
+                ))
+
+            marketChart.postValue(res)
         }
     }
 
+    companion object {
+
+        private const val TAG = "CryptoUseCase"
+
+        private const val CURRENCY_EUR = "eur"
+        private const val CURRENCY_USD = "usd"
+
+        private const val MARKET_CAP_DESC = "market_cap_desc"
+        private const val MARKET_CAP_ASC = "market_cap_asc"
+
+    }
 
 }

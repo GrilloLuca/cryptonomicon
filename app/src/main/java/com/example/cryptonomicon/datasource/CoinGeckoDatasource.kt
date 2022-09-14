@@ -2,6 +2,9 @@ package com.example.cryptonomicon.datasource
 
 import android.util.Log
 import com.example.cryptonomicon.api.CoinGeckoApi
+import com.example.cryptonomicon.models.MarketData
+import com.example.cryptonomicon.models.Token
+import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
 import kotlinx.coroutines.flow.flow
 import okhttp3.ResponseBody
@@ -15,7 +18,7 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
 
     override fun ping() = flow {
         val res = api.ping()
-        if(res.isSuccessful) {
+        if (res.isSuccessful) {
             emit(res.body())
         }
     }
@@ -23,50 +26,44 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
     /**
      * Obtain all the coins market data (price, market cap, volume)
      * */
-    override fun getTokens(
-        currency: String,
-        order: String,
-        perPage: Int
-    ) = flow {
+    override suspend fun getTokens(currency: String, order: String, perPage: Int): List<Token>? {
 
         val res = api.getTokens(currency, order, perPage)
-        if (res.isSuccessful) {
-            emit(res.body())
+        return if (res.isSuccessful) {
+            res.body()
         } else {
             logError(res.errorBody())
-            emit(listOf())
+            listOf()
         }
     }
 
-    override fun getTokenDetails(tokenId: String) = flow {
+    override suspend fun getTokenDetails(tokenId: String): TokenDetails? {
 
         val res = api.getTokenDetails(tokenId)
-        if(res.isSuccessful) {
-            emit(res.body())
+        return if (res.isSuccessful) {
+            res.body()
         } else {
             logError(res.errorBody())
-            emit(null)
+            null
         }
 
     }
 
-    override fun getMarketChart(
+    override suspend fun getMarketChart(
         tokenId: String,
         currency: String,
         from: String,
         to: String
-    ) = flow {
+    ): MarketData? {
 
         val res = api.getMarketChart(tokenId, currency, from, to)
-        if(res.isSuccessful) {
-            emit(res.body())
+        return if (res.isSuccessful) {
+            res.body()
         } else {
             logError(res.errorBody())
-            emit(null)
+            null
         }
-
     }
-
 
     private fun logError(error: ResponseBody?) {
         error?.string()?.let {

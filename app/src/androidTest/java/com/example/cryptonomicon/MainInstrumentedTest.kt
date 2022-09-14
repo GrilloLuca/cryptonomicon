@@ -1,20 +1,14 @@
 package com.example.cryptonomicon
 
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.cryptonomicon.api.CoinGeckoApi
-import com.example.cryptonomicon.datasource.CoinGeckoDatasource
 import com.example.cryptonomicon.models.*
 import com.example.cryptonomicon.repository.NetworkRepository
+import com.example.cryptonomicon.usecase.*
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.Response
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,12 +27,14 @@ class MainInstrumentedTest {
     @MockK
     lateinit var repo: NetworkRepository
 
-    private lateinit var useCase: CryptoUseCases
+    private lateinit var tokenDetailsUseCase: TokenDetailsUseCase
+    private lateinit var tokenListUseCase: GetTokenListUseCase
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        this.useCase = CryptoUseCases(repo)
+        this.tokenDetailsUseCase = TokenDetailsUseCase(repo)
+        this.tokenListUseCase = GetTokenListUseCase(repo)
     }
 
     @Test
@@ -49,11 +45,32 @@ class MainInstrumentedTest {
             emit(PingResponse("OK"))
         }
 
-        runBlocking {
-            useCase.ping().collect {
-                assertEquals("OK", it?.geckoSays)
+//        runBlocking {
+//            useCase.ping().collect {
+//                assertEquals("OK", it?.geckoSays)
+//            }
+//        }
+    }
+
+    @Test
+    fun getTokenListTest() {
+
+        val input = TokenListInput("eur", "desc", 10)
+
+        every {
+            runBlocking {
+                repo.getTokens(
+                    input.currency,
+                    input.order,
+                    input.page
+                )
             }
+        } returns listOf()
+
+        runBlocking {
+            val result = tokenListUseCase.execute(input)
         }
+
     }
 
     @Test
@@ -61,17 +78,19 @@ class MainInstrumentedTest {
 
         val tokenId = "bitcoin"
         every {
-            repo.getTokenDetails(tokenId)
-        } returns flow {
-            emit(TokenDetails(
-                Description(""), null, null
-            ))
-        }
+            runBlocking {
+                repo.getTokenDetails(tokenId)
+            }
+
+        } returns TokenDetails(
+            Description("OK"), null, null
+        )
+
 
         runBlocking {
 
-            val details = useCase.getTokenDetails(tokenId)
-            assertEquals(1, details.count())
+            val details = tokenDetailsUseCase.execute(tokenId)
+            assertEquals("OK", details?.description?.en)
 
         }
 

@@ -15,38 +15,40 @@ class TestDataSource @Inject constructor(var api: CoinGeckoApi) : NetworkReposit
 
     }
 
-    override fun getTokens(currency: String, order: String, perPage: Int): Flow<List<Token>?> =
-        flow {
-            val fakeTokens = listOf(
-                Token(
-                    id = "1",
-                    name = "GrilloToken",
-                    image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
-                ),
-                Token(id = "2",
-                    name = "Testcoin",
-                    current_price = 0.02f,
-                    image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
-                ),
-                Token(id = "3",
-                    name = "Fuck coin",
-                    symbol = "FCK",
-                    current_price = 0.000005f,
-                    image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"),
-            )
-            emit(fakeTokens)
-        }
+    override suspend fun getTokens(currency: String, order: String, perPage: Int): List<Token> =
+        listOf(
+            Token(
+                id = "1",
+                name = "GrilloToken",
+                image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
+            ),
+            Token(
+                id = "2",
+                name = "Testcoin",
+                current_price = 0.02f,
+                image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
+            ),
+            Token(
+                id = "3",
+                name = "Fuck coin",
+                symbol = "FCK",
+                current_price = 0.000005f,
+                image = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
+            ),
+        )
 
-    override fun getTokenDetails(tokenId: String): Flow<TokenDetails?> = flow {
-
+    override suspend fun getTokenDetails(tokenId: String): TokenDetails? {
+        return null
     }
 
-    override fun getMarketChart(
+    override suspend fun getMarketChart(
         tokenId: String,
         currency: String,
         from: String,
         to: String
-    ): Flow<MarketData?> = flow {
-
+    ): MarketData? {
+        return null
     }
+
+
 }
