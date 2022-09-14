@@ -38,22 +38,7 @@ class MainInstrumentedTest {
     }
 
     @Test
-    fun pingUseCaseTest() {
-        every {
-            repo.ping()
-        } returns flow {
-            emit(PingResponse("OK"))
-        }
-
-//        runBlocking {
-//            useCase.ping().collect {
-//                assertEquals("OK", it?.geckoSays)
-//            }
-//        }
-    }
-
-    @Test
-    fun getTokenListTest() {
+    fun tokenListUseCaseSuccessTest() {
 
         val input = TokenListInput("eur", "desc", 10)
 
@@ -65,16 +50,20 @@ class MainInstrumentedTest {
                     input.page
                 )
             }
-        } returns listOf()
+        } returns Resource.Success(
+            listOf(
+                Token("bitcoin", "bitcoin")
+            ))
 
         runBlocking {
             val result = tokenListUseCase.execute(input)
+            assertEquals("bitcoin", result.data?.first()?.id)
         }
 
     }
 
     @Test
-    fun getTokenDetailsTest() {
+    fun tokenDetailsUseCaseSuccessTest() {
 
         val tokenId = "bitcoin"
         every {
@@ -82,18 +71,41 @@ class MainInstrumentedTest {
                 repo.getTokenDetails(tokenId)
             }
 
-        } returns TokenDetails(
+        } returns Resource.Success(TokenDetails(
             Description("OK"), null, null
-        )
+        ))
 
 
         runBlocking {
 
             val details = tokenDetailsUseCase.execute(tokenId)
-            assertEquals("OK", details?.description?.en)
+            assertEquals("OK", details.data?.description?.en)
 
         }
 
     }
+
+    @Test
+    fun tokenListUseCaseErrorTest() {
+
+        val input = TokenListInput("eur", "desc", 10)
+
+        every {
+            runBlocking {
+                repo.getTokens(
+                    input.currency,
+                    input.order,
+                    input.page
+                )
+            }
+        } returns Resource.Error("ERROR", null)
+
+        runBlocking {
+            val result = tokenListUseCase.execute(input)
+            assertEquals("ERROR", result.text)
+        }
+
+    }
+
 
 }
