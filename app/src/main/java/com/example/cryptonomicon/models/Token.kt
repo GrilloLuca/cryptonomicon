@@ -3,9 +3,9 @@ package com.example.cryptonomicon.models
 data class Token(
     val id: String,
     val name: String,
-    val image: String?,
-    val symbol: String?,
-    val current_price: Float?,
+    val image: Any? = null,
+    val symbol: String? = null,
+    val current_price: Float? = null,
 //    val ath: Float,
 //    val ath_change_percentage: Double,
 //    val ath_date: String,

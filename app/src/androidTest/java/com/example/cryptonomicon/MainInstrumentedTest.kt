@@ -4,7 +4,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.datasource.CoinGeckoDatasource
-import com.example.cryptonomicon.models.PingResponse
+import com.example.cryptonomicon.models.*
 import com.example.cryptonomicon.repository.NetworkRepository
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -28,7 +28,7 @@ import org.junit.Before
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class MainInstrumentedTest {
 
     @MockK
     lateinit var repo: NetworkRepository
@@ -42,15 +42,7 @@ class ExampleInstrumentedTest {
     }
 
     @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.cryptonomicon", appContext.packageName)
-    }
-
-    @Test
-    fun getTokensUseCaseTest() {
-
+    fun pingUseCaseTest() {
         every {
             repo.ping()
         } returns flow {
@@ -61,6 +53,26 @@ class ExampleInstrumentedTest {
             useCase.ping().collect {
                 assertEquals("OK", it?.geckoSays)
             }
+        }
+    }
+
+    @Test
+    fun getTokenDetailsTest() {
+
+        val tokenId = "bitcoin"
+        every {
+            repo.getTokenDetails(tokenId)
+        } returns flow {
+            emit(TokenDetails(
+                Description(""), null, null
+            ))
+        }
+
+        runBlocking {
+
+            val details = useCase.getTokenDetails(tokenId)
+            assertEquals(1, details.count())
+
         }
 
     }
