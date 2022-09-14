@@ -1,13 +1,15 @@
 package com.example.cryptonomicon.usecase
 
+import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.repository.NetworkRepository
 import java.sql.Timestamp
 import javax.inject.Inject
 
 class WeeklyMarketChartUseCase @Inject constructor(private var repo: NetworkRepository) :
-    CoroutineUseCase<WeeklyMarketChartInput, MarketData?>() {
-    override suspend fun execute(input: WeeklyMarketChartInput): MarketData? {
+    CoroutineUseCase<WeeklyMarketChartInput, Resource<MarketData>>() {
+
+    override suspend fun execute(input: WeeklyMarketChartInput): Resource<MarketData> {
 
         val week = 7 * 60 * 60 * 24 * 1000
         val now = System.currentTimeMillis()

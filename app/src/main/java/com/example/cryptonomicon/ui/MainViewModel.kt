@@ -3,6 +3,7 @@ package com.example.cryptonomicon.ui
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
@@ -23,6 +24,8 @@ class MainViewModel @Inject constructor(
     var tokenDetails = MutableLiveData<TokenDetails>()
     var marketChart = MutableLiveData<MarketData>()
 
+    var error = MutableLiveData<String>()
+
     /**
      * execute useCases and update the livedata
      * parameters should be injected for better testability
@@ -32,14 +35,33 @@ class MainViewModel @Inject constructor(
             val res = tokenListUseCase.execute(
                 TokenListInput(CURRENCY_EUR, MARKET_CAP_DESC, 10)
             )
-            tokenList.postValue(res)
+
+            when(res) {
+                is Resource.Success -> tokenList.postValue(res.data)
+                is Resource.Error -> {
+                    error.postValue(res.text)
+                    res.data?.let {
+                        tokenList.postValue(res.data)
+                    }
+                }
+            }
+
         }
     }
 
     fun getTokenDetails(tokenId: String) {
         viewModelScope.launch {
             val res = tokenDetailsUseCase.execute(tokenId)
-            tokenDetails.postValue(res)
+
+            when(res) {
+                is Resource.Success -> tokenDetails.postValue(res.data)
+                is Resource.Error -> {
+                    error.postValue(res.text)
+                    res.data?.let {
+                        tokenDetails.postValue(res.data)
+                    }
+                }
+            }
         }
     }
 
@@ -51,7 +73,15 @@ class MainViewModel @Inject constructor(
                     currency = CURRENCY_EUR
                 ))
 
-            marketChart.postValue(res)
+            when(res) {
+                is Resource.Success -> marketChart.postValue(res.data)
+                is Resource.Error -> {
+                    error.postValue(res.text)
+                    res.data?.let {
+                        marketChart.postValue(res.data)
+                    }
+                }
+            }
         }
     }
 

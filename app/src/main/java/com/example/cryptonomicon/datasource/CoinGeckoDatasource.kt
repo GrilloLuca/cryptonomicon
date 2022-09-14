@@ -1,6 +1,7 @@
 package com.example.cryptonomicon.datasource
 
 import android.util.Log
+import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
@@ -19,25 +20,23 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
     /**
      * Obtain all the coins market data (price, market cap, volume)
      * */
-    override suspend fun getTokens(currency: String, order: String, perPage: Int): List<Token>? {
+    override suspend fun getTokens(currency: String, order: String, perPage: Int): Resource<List<Token>> {
 
         val res = api.getTokens(currency, order, perPage)
         return if (res.isSuccessful) {
-            res.body()
+            Resource.Success(res.body())
         } else {
-            logError(res.errorBody())
-            listOf()
+            Resource.Error(res.errorBody()?.source().toString(), listOf())
         }
     }
 
-    override suspend fun getTokenDetails(tokenId: String): TokenDetails? {
+    override suspend fun getTokenDetails(tokenId: String): Resource<TokenDetails> {
 
         val res = api.getTokenDetails(tokenId)
         return if (res.isSuccessful) {
-            res.body()
+            Resource.Success(res.body())
         } else {
-            logError(res.errorBody())
-            null
+            Resource.Error(res.errorBody()?.source().toString(), null)
         }
 
     }
@@ -47,14 +46,13 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
         currency: String,
         from: String,
         to: String
-    ): MarketData? {
+    ): Resource<MarketData> {
 
         val res = api.getMarketChart(tokenId, currency, from, to)
         return if (res.isSuccessful) {
-            res.body()
+            Resource.Success(res.body())
         } else {
-            logError(res.errorBody())
-            null
+            Resource.Error(res.errorBody()?.source().toString(), null)
         }
     }
 
