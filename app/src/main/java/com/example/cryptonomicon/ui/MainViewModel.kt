@@ -8,11 +8,7 @@ import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import java.sql.Timestamp
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,13 +24,9 @@ class MainViewModel @Inject constructor(
     var marketChart = MutableLiveData<MarketData>()
 
     /**
-     * Ping method of CoinGecko api
-     * dispatchers should be injected in the viewModel as well
+     * execute useCases and update the livedata
+     * parameters should be injected for better testability
      */
-    fun ping() = CoroutineScope(Dispatchers.IO).launch {
-//        useCase.ping()
-    }
-
     fun getTokens() {
         viewModelScope.launch {
             val res = tokenListUseCase.execute(
