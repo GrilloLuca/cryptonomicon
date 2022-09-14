@@ -16,13 +16,6 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
         private const val TAG = "CoinGeckoDatasource"
     }
 
-    override fun ping() = flow {
-        val res = api.ping()
-        if (res.isSuccessful) {
-            emit(res.body())
-        }
-    }
-
     /**
      * Obtain all the coins market data (price, market cap, volume)
      * */

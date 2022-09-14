@@ -2,18 +2,12 @@ package com.example.cryptonomicon.datasource
 
 import com.example.cryptonomicon.api.CoinGeckoApi
 import com.example.cryptonomicon.models.MarketData
-import com.example.cryptonomicon.models.PingResponse
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.repository.NetworkRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class TestDataSource @Inject constructor(var api: CoinGeckoApi) : NetworkRepository {
-    override fun ping(): Flow<PingResponse?> = flow {
-
-    }
 
     override suspend fun getTokens(currency: String, order: String, perPage: Int): List<Token> =
         listOf(
