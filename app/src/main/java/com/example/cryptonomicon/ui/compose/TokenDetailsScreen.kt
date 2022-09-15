@@ -58,8 +58,8 @@ fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
             elevation = 2.dp,
             shape = RoundedCornerShape(corner = CornerSize(16.dp))
         ) {
-            chart.value?.let {
-                MarketPriceList(it.prices)
+            chart.value?.prices?.let {
+                MarketPriceList(it)
             } ?: Loader()
         }
     }

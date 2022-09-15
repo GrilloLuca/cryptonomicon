@@ -1,6 +1,7 @@
 package com.example.cryptonomicon
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -64,6 +65,9 @@ fun NavigationScreen(navController: NavHostController) {
     error.value?.let {
         if(BuildConfig.DEBUG)
             Toast.makeText(LocalContext.current, it, Toast.LENGTH_LONG).show()
+        else
+            Log.d("ERROR", it)
+
     }
 
     NavHost(navController = navController, startDestination = "main") {
