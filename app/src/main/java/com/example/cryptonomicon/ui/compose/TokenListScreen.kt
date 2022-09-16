@@ -33,6 +33,7 @@ fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
         if (it.isEmpty()) {
             EmptyList()
         }
+
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             it.forEach { token ->
                 TokenListItem(navController, token)

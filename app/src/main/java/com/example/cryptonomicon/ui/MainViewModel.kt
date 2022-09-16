@@ -9,6 +9,7 @@ import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import com.example.cryptonomicon.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,16 +33,16 @@ class MainViewModel @Inject constructor(
      */
     fun getTokens() {
         viewModelScope.launch {
-            val res = tokenListUseCase.execute(
+            tokenListUseCase.execute(
                 TokenListInput(CURRENCY_EUR, MARKET_CAP_DESC, 10)
-            )
-
-            when(res) {
-                is Resource.Success -> tokenList.postValue(res.data)
-                is Resource.Error -> {
-                    error.postValue(res.text)
-                    res.data?.let {
-                        tokenList.postValue(res.data)
+            ).collect { res ->
+                when (res) {
+                    is Resource.Success -> tokenList.postValue(res.data)
+                    is Resource.Error -> {
+                        error.postValue(res.text)
+                        res.data?.let {
+                            tokenList.postValue(res.data)
+                        }
                     }
                 }
             }
@@ -51,14 +52,14 @@ class MainViewModel @Inject constructor(
 
     fun getTokenDetails(tokenId: String) {
         viewModelScope.launch {
-            val res = tokenDetailsUseCase.execute(tokenId)
-
-            when(res) {
-                is Resource.Success -> tokenDetails.postValue(res.data)
-                is Resource.Error -> {
-                    error.postValue(res.text)
-                    res.data?.let {
-                        tokenDetails.postValue(res.data)
+            tokenDetailsUseCase.execute(tokenId).collect { res ->
+                when (res) {
+                    is Resource.Success -> tokenDetails.postValue(res.data)
+                    is Resource.Error -> {
+                        error.postValue(res.text)
+                        res.data?.let {
+                            tokenDetails.postValue(it)
+                        }
                     }
                 }
             }
@@ -67,18 +68,19 @@ class MainViewModel @Inject constructor(
 
     fun getWeeklyMarketChart(tokenId: String) {
         viewModelScope.launch {
-            val res = weeklyMarketChartUseCase.execute(
+            weeklyMarketChartUseCase.execute(
                 WeeklyMarketChartInput(
                     tokenId = tokenId,
                     currency = CURRENCY_EUR
-                ))
-
-            when(res) {
-                is Resource.Success -> marketChart.postValue(res.data)
-                is Resource.Error -> {
-                    error.postValue(res.text)
-                    res.data?.let {
-                        marketChart.postValue(res.data)
+                )
+            ).collect { res ->
+                when(res) {
+                    is Resource.Success -> marketChart.postValue(res.data)
+                    is Resource.Error -> {
+                        error.postValue(res.text)
+                        res.data?.let {
+                            marketChart.postValue(res.data)
+                        }
                     }
                 }
             }

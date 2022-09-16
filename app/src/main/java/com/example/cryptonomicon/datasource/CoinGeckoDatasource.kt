@@ -3,18 +3,17 @@ package com.example.cryptonomicon.datasource
 import android.util.Log
 import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.api.CoinGeckoApi
-import com.example.cryptonomicon.models.Description
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
-import com.example.cryptonomicon.repository.NetworkRepository
+import com.example.cryptonomicon.repository.ApiContract
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import okhttp3.ResponseBody
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRepository {
+class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : ApiContract {
 
     companion object {
         private const val TAG = "CoinGeckoDatasource"
@@ -42,17 +41,21 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
 
     }
 
-    override suspend fun getTokenDetails(tokenId: String): Resource<TokenDetails> {
-        return try {
+    override fun getTokenDetails(tokenId: String): Flow<Resource<TokenDetails>> = flow {
+
             val res = api.getTokenDetails(tokenId)
-            return if (res.isSuccessful) {
-                Resource.Success(res.body())
+            if (res.isSuccessful) {
+                emit(Resource.Success(res.body()))
             } else {
-                Resource.Error(res.errorBody()?.source().toString(), null)
+                emit(Resource.Error(res.errorBody()?.source().toString(), null))
             }
-        } catch (throwable: Throwable) {
-            errorHandler(throwable, TokenDetails(Description("")))
-        }
+
+//            errorHandler(throwable, TokenDetails("0", Description("")))
+
+    }
+
+    override suspend fun saveTokenDetails(tokenId: String, details: TokenDetails) {
+
     }
 
     override suspend fun getMarketChart(
