@@ -27,8 +27,9 @@ import com.example.cryptonomicon.ui.MainViewModel
  */
 @Composable
 fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
-    val tokens = viewModel.tokenList.observeAsState()
 
+    val tokens = viewModel.tokenList.observeAsState()
+    viewModel.getTokens()
     tokens.value?.let {
         if (it.isEmpty()) {
             EmptyList()

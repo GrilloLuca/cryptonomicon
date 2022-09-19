@@ -1,8 +1,8 @@
 package com.example.cryptonomicon.models
 
 data class ImageDetail(
-    var thumb: String,
-    var small: String,
-    var large: String,
+    val thumb: String,
+    val small: String,
+    val large: String,
 )
 

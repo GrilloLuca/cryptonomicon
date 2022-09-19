@@ -1,6 +1,7 @@
 package com.example.cryptonomicon.ui
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptonomicon.Resource
@@ -16,17 +17,13 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private var tokenListUseCase: GetTokenListUseCase,
-    private var tokenDetailsUseCase: TokenDetailsUseCase,
-    private var weeklyMarketChartUseCase: WeeklyMarketChartUseCase
-
-) : ViewModel() {
+    ) : ViewModel() {
 
     var tokenList = MutableLiveData<List<Token>>()
-    var tokenDetails = MutableLiveData<TokenDetails>()
-    var marketChart = MutableLiveData<MarketData>()
 
-    var error = MutableLiveData<String>()
-
+    init {
+        getTokens()
+    }
     /**
      * execute useCases and update the livedata
      * parameters should be injected for better testability
@@ -38,58 +35,14 @@ class MainViewModel @Inject constructor(
             ).collect { res ->
                 when (res) {
                     is Resource.Success -> tokenList.postValue(res.data)
-                    is Resource.Error -> {
-                        error.postValue(res.text)
-                        res.data?.let {
-                            tokenList.postValue(res.data)
-                        }
-                    }
+                    is Resource.Error -> { }
                 }
             }
 
-        }
-    }
-
-    fun getTokenDetails(tokenId: String) {
-        viewModelScope.launch {
-            tokenDetailsUseCase.execute(tokenId).collect { res ->
-                when (res) {
-                    is Resource.Success -> tokenDetails.postValue(res.data)
-                    is Resource.Error -> {
-                        error.postValue(res.text)
-                        res.data?.let {
-                            tokenDetails.postValue(it)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun getWeeklyMarketChart(tokenId: String) {
-        viewModelScope.launch {
-            weeklyMarketChartUseCase.execute(
-                WeeklyMarketChartInput(
-                    tokenId = tokenId,
-                    currency = CURRENCY_EUR
-                )
-            ).collect { res ->
-                when(res) {
-                    is Resource.Success -> marketChart.postValue(res.data)
-                    is Resource.Error -> {
-                        error.postValue(res.text)
-                        res.data?.let {
-                            marketChart.postValue(res.data)
-                        }
-                    }
-                }
-            }
         }
     }
 
     companion object {
-
-        private const val TAG = "CryptoUseCase"
 
         private const val CURRENCY_EUR = "eur"
         private const val CURRENCY_USD = "usd"
