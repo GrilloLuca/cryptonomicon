@@ -7,22 +7,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class GetTokenListUseCase @Inject constructor(private var repo: CryptoRepository):
+class GetTokenListUseCase @Inject constructor(private var repo: CryptoRepository) :
     CoroutineUseCase<TokenListInput, Resource<List<Token>>>() {
 
-    override fun execute(input: TokenListInput): Flow<Resource<List<Token>>> = flow {
-        val tokens = repo.getTokens(
+    override fun execute(input: TokenListInput): Flow<Resource<List<Token>>> =
+        repo.getTokens(
             input.currency,
             input.order,
             input.page
         )
-
-        emit(tokens)
-    }
-
 }
 
 data class TokenListInput(
     val currency: String,
     val order: String,
-    val page: Int)
+    val page: Int
+)

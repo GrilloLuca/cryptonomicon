@@ -105,7 +105,6 @@ fun TokenListItemPreview() {
             id= "bitcoin",
             name = "Bitcoin",
             symbol = "BTC",
-            image = R.drawable.ic_bitcoin,
             current_price = 18000.0f
         )
     )

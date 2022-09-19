@@ -1,6 +1,5 @@
 package com.example.cryptonomicon.repository
 
-import android.util.Log
 import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.datasource.CoinGeckoDatasource
 import com.example.cryptonomicon.datasource.RoomDatasource
@@ -8,10 +7,9 @@ import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 class CryptoRepository @Inject constructor(
@@ -19,13 +17,34 @@ class CryptoRepository @Inject constructor(
     var dbDatasource: RoomDatasource
     ) {
 
-    suspend fun getTokens(
+    fun getTokens(
         currency: String,
         order: String,
         perPage: Int
-    ): Resource<List<Token>> {
+    ): Flow<Resource<List<Token>>> = flow {
 
-        return networkDatasource.getTokens(currency, order, perPage)
+        dbDatasource.getTokens(currency, order, perPage)
+            .flowOn(Dispatchers.IO)
+            .catch { e ->
+                errorHandler(e, null)
+            }
+            .collect {
+                emit(it)
+            }
+
+        networkDatasource.getTokens(currency, order, perPage)
+            .flowOn(Dispatchers.IO)
+            .catch { e ->
+                errorHandler(e, listOf<Token>())
+            }
+            .collect {
+                if(it is Resource.Success) {
+                    it.data?.let { tokenList ->
+                        dbDatasource.saveTokens(tokenList)
+                    }
+                }
+                emit(it)
+            }
 
     }
 
@@ -33,25 +52,27 @@ class CryptoRepository @Inject constructor(
 
         dbDatasource.getTokenDetails(tokenId)
             .flowOn(Dispatchers.IO)
+            .catch { e ->
+                errorHandler(e, listOf<Token>())
+            }
             .collect {
                 emit(it)
             }
 
         networkDatasource.getTokenDetails(tokenId)
             .flowOn(Dispatchers.IO)
-            .collect {
-            if(it is Resource.Success) {
-                it.data?.let { details ->
-                    dbDatasource.saveTokenDetails(tokenId, details)
-                }
+            .catch { e ->
+                errorHandler(e, listOf<Token>())
             }
+            .collect {
+                if(it is Resource.Success) {
+                    it.data?.let { details ->
+                        dbDatasource.saveTokenDetails(tokenId, details)
+                    }
+                }
             emit(it)
         }
 
-    }
-
-    suspend fun saveTokenDetails(tokenId: String, details: TokenDetails) {
-        TODO("Not yet implemented")
     }
 
     suspend fun getMarketChart(
@@ -64,5 +85,15 @@ class CryptoRepository @Inject constructor(
         return networkDatasource.getMarketChart(tokenId, currency, from, to)
     }
 
+
+    private fun <T> errorHandler(throwable: Throwable, output: T): Resource<T> {
+        val errorMessage = when (throwable) {
+            is IOException -> throwable.localizedMessage
+            is HttpException -> throwable.response()?.errorBody()?.source().toString()
+            else -> "generic error"
+        }
+
+        return Resource.Error(errorMessage, output)
+    }
 
 }

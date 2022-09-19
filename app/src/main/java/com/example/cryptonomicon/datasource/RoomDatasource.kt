@@ -20,16 +20,24 @@ class RoomDatasource @Inject constructor(var db: AppDatabase) : ApiContract {
         currency: String,
         order: String,
         perPage: Int
-    ): Resource<List<Token>> {
-        TODO("Not yet implemented")
+    ): Flow<Resource<List<Token>>> = flow {
+
+        val tokens = db.tokenListDao().getAll()
+        emit(Resource.Success(tokens))
+
     }
 
     override fun getTokenDetails(tokenId: String): Flow<Resource<TokenDetails>> = flow {
 
-
         val details = db.tokenDetailsDao().findById(tokenId)
         emit(Resource.Success(details))
 
+    }
+
+    override suspend fun saveTokens(tokens: List<Token>) {
+        withContext(Dispatchers.IO) {
+            db.tokenListDao().insertAll(*tokens.toTypedArray())
+        }
     }
 
     override suspend fun saveTokenDetails(tokenId: String, details: TokenDetails) {
