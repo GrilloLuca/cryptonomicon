@@ -17,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
-import androidx.navigation.NavController
 import com.example.cryptonomicon.models.TokenDetails
-import com.example.cryptonomicon.ui.MainViewModel
+import com.example.cryptonomicon.ui.DetailsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,7 +28,8 @@ import java.util.*
  * description and market price
  */
 @Composable
-fun TokenDetailsScreen(navController: NavController, viewModel: MainViewModel) {
+fun TokenDetailsScreen(viewModel: DetailsViewModel) {
+
     val details = viewModel.tokenDetails.observeAsState()
     val chart = viewModel.marketChart.observeAsState()
 

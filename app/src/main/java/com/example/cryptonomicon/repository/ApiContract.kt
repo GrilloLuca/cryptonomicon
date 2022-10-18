@@ -4,11 +4,16 @@ import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
+import kotlinx.coroutines.flow.Flow
 
-interface NetworkRepository {
+interface ApiContract {
 
-    suspend fun getTokens(currency: String, order: String, perPage: Int): Resource<List<Token>>
-    suspend fun getTokenDetails(tokenId: String): Resource<TokenDetails>
+    suspend fun getTokens(currency: String, order: String, perPage: Int): Flow<Resource<List<Token>>>
+    fun getTokenDetails(tokenId: String): Flow<Resource<TokenDetails>>
+
+    suspend fun saveTokenDetails(tokenId: String, details: TokenDetails) {}
+    suspend fun saveTokens(tokens: List<Token>) {}
+
     suspend fun getMarketChart(
         tokenId: String,
         currency: String,

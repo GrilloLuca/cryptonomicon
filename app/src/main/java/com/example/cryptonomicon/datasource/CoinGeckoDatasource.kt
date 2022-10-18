@@ -1,20 +1,16 @@
 package com.example.cryptonomicon.datasource
 
-import android.util.Log
 import com.example.cryptonomicon.Resource
 import com.example.cryptonomicon.api.CoinGeckoApi
-import com.example.cryptonomicon.models.Description
 import com.example.cryptonomicon.models.MarketData
 import com.example.cryptonomicon.models.Token
 import com.example.cryptonomicon.models.TokenDetails
-import com.example.cryptonomicon.repository.NetworkRepository
+import com.example.cryptonomicon.repository.ApiContract
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import okhttp3.ResponseBody
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
-class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRepository {
+class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : ApiContract {
 
     companion object {
         private const val TAG = "CoinGeckoDatasource"
@@ -27,32 +23,26 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
         currency: String,
         order: String,
         perPage: Int
-    ): Resource<List<Token>> {
+    ): Flow<Resource<List<Token>>>  = flow {
 
-        return try {
-            val res = api.getTokens(currency, order, perPage)
-            return if (res.isSuccessful) {
-                Resource.Success(res.body())
-            } else {
-                Resource.Error(res.errorBody()?.source().toString(), listOf())
-            }
-        } catch (throwable: Throwable) {
-            errorHandler(throwable, listOf())
+        val res = api.getTokens(currency, order, perPage)
+        if (res.isSuccessful) {
+            emit(Resource.Success(res.body()))
+        } else {
+            emit(Resource.Error(res.errorBody()?.source().toString(), listOf()))
         }
 
     }
 
-    override suspend fun getTokenDetails(tokenId: String): Resource<TokenDetails> {
-        return try {
-            val res = api.getTokenDetails(tokenId)
-            return if (res.isSuccessful) {
-                Resource.Success(res.body())
-            } else {
-                Resource.Error(res.errorBody()?.source().toString(), null)
-            }
-        } catch (throwable: Throwable) {
-            errorHandler(throwable, TokenDetails(Description("")))
+    override fun getTokenDetails(tokenId: String): Flow<Resource<TokenDetails>> = flow {
+
+        val res = api.getTokenDetails(tokenId)
+        if (res.isSuccessful) {
+            emit(Resource.Success(res.body()))
+        } else {
+            emit(Resource.Error(res.errorBody()?.source().toString(), null))
         }
+
     }
 
     override suspend fun getMarketChart(
@@ -70,18 +60,8 @@ class CoinGeckoDatasource @Inject constructor(var api: CoinGeckoApi) : NetworkRe
                 Resource.Error(res.errorBody()?.source().toString(), null)
             }
         } catch (throwable: Throwable) {
-            errorHandler(throwable, MarketData(null))
+            Resource.Error(throwable.localizedMessage, null)
         }
-    }
-
-    private fun <T> errorHandler(throwable: Throwable, output: T): Resource<T> {
-        val errorMessage = when (throwable) {
-            is IOException -> throwable.localizedMessage
-            is HttpException -> throwable.response()?.errorBody()?.source().toString()
-            else -> "generic error"
-        }
-
-        return Resource.Error(errorMessage, output)
     }
 
 }

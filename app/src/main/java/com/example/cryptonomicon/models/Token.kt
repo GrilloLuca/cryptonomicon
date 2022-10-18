@@ -1,11 +1,17 @@
 package com.example.cryptonomicon.models
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class Token(
-    val id: String,
-    val name: String,
-    val symbol: String? = null,
-    val current_price: Float? = null,
-    val image: Any? = null,
+    @PrimaryKey val id: String,
+    @ColumnInfo val name: String,
+    @ColumnInfo val symbol: String? = null,
+    @ColumnInfo val current_price: Float? = null,
+    @ColumnInfo val image: String? = null,
+
 //    val ath: Float,
 //    val ath_change_percentage: Double,
 //    val ath_date: String,

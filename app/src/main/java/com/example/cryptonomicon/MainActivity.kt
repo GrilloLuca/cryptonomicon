@@ -22,6 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.cryptonomicon.ui.DetailsViewModel
+import com.example.cryptonomicon.ui.ErrorViewModel
 import com.example.cryptonomicon.ui.MainViewModel
 import com.example.cryptonomicon.ui.compose.TokenDetailsScreen
 import com.example.cryptonomicon.ui.compose.TokensScreen
@@ -60,7 +62,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NavigationScreen(navController: NavHostController) {
 
-    val viewModel = hiltViewModel<MainViewModel>()
+    val viewModel = hiltViewModel<ErrorViewModel>()
     val error = viewModel.error.observeAsState()
     error.value?.let {
         if(BuildConfig.DEBUG)
@@ -71,25 +73,12 @@ fun NavigationScreen(navController: NavHostController) {
     }
 
     NavHost(navController = navController, startDestination = "main") {
-        composable(route = "main") { _ ->
+        composable(route = "main") {
             // request tokens by ViewModel and observe result in the composable
-            viewModel.getTokens()
-            TokensScreen(navController, viewModel)
+            TokensScreen(navController, hiltViewModel())
         }
-        composable(
-            route = "details/{tokenId}",
-            arguments = listOf(navArgument("tokenId") {
-                type = NavType.StringType
-            })
-        ) { details ->
-            details.arguments?.getString("tokenId")?.let { tokenId ->
-                // request tokens details and market data by ViewModel
-                // and observe result in the composable
-                viewModel.getTokenDetails(tokenId)
-                viewModel.getWeeklyMarketChart(tokenId)
-
-                TokenDetailsScreen(navController, viewModel)
-            }
+        composable(route = "details/{tokenId}") {
+            TokenDetailsScreen(hiltViewModel())
         }
     }
 }

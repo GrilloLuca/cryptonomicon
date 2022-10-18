@@ -27,12 +27,14 @@ import com.example.cryptonomicon.ui.MainViewModel
  */
 @Composable
 fun TokensScreen(navController: NavController, viewModel: MainViewModel) {
-    val tokens = viewModel.tokenList.observeAsState()
 
+    val tokens = viewModel.tokenList.observeAsState()
+    viewModel.getTokens()
     tokens.value?.let {
         if (it.isEmpty()) {
             EmptyList()
         }
+
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             it.forEach { token ->
                 TokenListItem(navController, token)
@@ -104,7 +106,6 @@ fun TokenListItemPreview() {
             id= "bitcoin",
             name = "Bitcoin",
             symbol = "BTC",
-            image = R.drawable.ic_bitcoin,
             current_price = 18000.0f
         )
     )
